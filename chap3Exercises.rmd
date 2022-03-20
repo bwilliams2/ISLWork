@@ -1,0 +1,120 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+# Conceptual
+
+1. TV and radio are significant and predictive for number sold while newspaper
+is not significant indicated by the low p-value.
+
+2. KNN regression is based on a distance in variable space while KNN classifer
+is based on a plurality of nearest neighbor classifications.
+
+3a.
+i. Incorrect, B3 is > 0 indicating there is a positive effect
+from college since College takes the value of 1 for the dummy variable.
+
+ii. Correct above..
+
+3b.
+```{r}
+earnings <- function(gpa, iq, level) {
+    return (50 + 20 * gpa + 0.07 * iq + 35 *
+    level + 0.01 * iq * gpa - 10 * gpa * level)
+}
+print(earnings(4.0, 110, 1))
+```
+
+Earnings = 137.1
+
+3c. The effect may be small in some cases but without a t-test it is difficult
+to assess
+
+4a. I would epxect the RSS of the cubic fit to be smaller because it contains the
+true linear fit and has additional coefficients that likely lessen the observed
+error due to measurement randomness.
+
+4b. I would expet the test RSS of the linear fit to be better.
+
+4c. We do not know
+
+4d. dont know
+
+5.
+
+8. 
+```{r}
+library(ISLR)
+attach(Auto)
+
+mpg_fit <- lm(mpg ~ horsepower)
+summary(mpg_fit)
+```
+a. yes
+b. P-value of <2e-16
+c. negative
+d.
+```{r}
+predict(mpg_fit, data.frame(horsepower=c(98)), interval="confidence")
+predict(mpg_fit, data.frame(horsepower=c(98)), interval="prediction")
+```
+
+9.
+a.
+```{r.plot}
+pairs(Auto)
+```
+b.
+```{r}
+cor(Auto[, -which(names(Auto) == "name")])
+```
+c.
+```{r}
+limited = Auto[, -which(names(Auto) == "name")]
+auto.fit = lm(mpg ~ ., data=limited)
+summary(auto.fit)
+```
+
+11.
+a. 
+```{r}
+set.seed(1)
+x <- rnorm(100)
+y <- 2 * x + rnorm(100)
+fit <- lm(y~x + 0)
+summary(fit)
+```
+b.
+```{r}
+set.seed(1)
+x <- rnorm(100)
+y <- 2 * x + rnorm(100)
+fit <- lm(x~y + 0)
+summary(fit)
+```
+c.
+
+14.
+```{r}
+set.seed (1)
+x1 <- runif (100)
+x2 <- 0.5 * x1 + rnorm (100) / 10
+y <- 2 + 2 * x1 + 0.3 * x2 + rnorm (100)
+fit <- lm(y ~ x1 + x2)
+summary(fit)
+```
+b.
+```{r}
+plot(x1, x2)
+```
+
+```{r}
+fit <- lm(y ~ x1)
+summary(fit)
+```
+
+```{r}
+fit <- lm(y ~ x2)
+summary(fit)
+```
