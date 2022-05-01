@@ -1,0 +1,275 @@
+1.
+$$ 
+p(X) = \frac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}} \\
+1 - p(x) = \frac{1 + e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}} - \frac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}} \\
+1 - p(x) = \frac{1}{1 + e^{\beta_0 + \beta_1 X}} \\
+\frac{p(X)}{1 - p(x)} =  \frac{\frac{e^{\beta_0 + \beta_1 X}}{1 + e^{\beta_0 + \beta_1 X}}}{\frac{1}{1 + e^{\beta_0 + \beta_1 X}}} = e^{\beta_0 + \beta_1 X}
+$$
+
+2. Do PEN PAPER
+
+3. Do PEN PAPER
+
+4. 
+(a). 10%
+(b). 1% (10% * 10%)
+(c). (0.1^100)
+(d). 
+
+5.
+(a). QDA, LDA
+(b) QDA, QDA if training set is large
+(c) Improve, since there are more paramaters to optimize in QDA
+(d) False, QDA can have high bias due to flexibility
+
+6. 
+```{r}
+a = exp(-6 + 0.05 * 40 + 1 * 3.5)
+a/(1 + a)
+```
+(b)
+```{r}
+(log(0.5/(1 - 0.5)) + 6 - 3.5) / 0.05
+```
+
+7.
+$$
+p(Y=Yes | X=4) = \frac{P(Yes) P(x=4|Yes)}{P(x=4)} \\
+$$
+
+8.
+Redo
+
+9.
+$$
+p(x)/(1 - p(x)) = 0.37 \\
+(1 + .37) p(x) =  0.37 \\
+p(x) = 0.37/1.37
+$$
+
+$$
+0.16/(1 - 0.16)
+$$
+
+10. Pen and PAPER
+
+11. Pen and PAPER
+
+12.
+
+
+13.# Naive Bayes
+(a)
+```{r}
+library(ISLR2)
+attach(Weekly)
+head(Weekly)
+pairs(Weekly[,1:ncol(Weekly)-1])
+```
+
+(b)
+```{r}
+week.fit <- glm(
+    Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume,
+    data = Weekly, family=binomial
+)
+summary(week.fit)
+```
+Only Lag2 was found to be statistically significant.
+
+(c)
+```{r}
+week.probs <- predict(week.fit, type="response")
+week.pred <- rep("Down", nrow(Weekly))
+week.pred[week.probs > .5] <- "Up"
+table(week.pred, Direction)
+```
+
+(d)
+```{r}
+train <- (Year < 2009)
+Weekly.test = Weekly[!train, ]
+Direction.test = Direction[!train]
+week.fit <- glm(
+    Direction ~ Lag2,
+    data = Weekly, family=binomial, subset=train
+)
+week.probs <- predict(week.fit, Weekly.test,type="response")
+week.pred <- rep("Down", nrow(Weekly[!train, ]))
+week.pred[week.probs > .5] <- "Up"
+table(week.pred, Direction.test)
+
+56/(56 + 5)
+```
+
+(e)
+```{r}
+library(MASS)
+week.fit <- lda(
+    Direction ~ Lag2,
+    data = Weekly, family=binomial, subset=train
+)
+week.pred <- predict(week.fit, Weekly.test)
+names(week.pred)
+week.class <- week.pred$class
+table(week.class, Direction.test)
+
+```
+
+(f)
+```{r}
+week.fit <- qda(
+    Direction ~ Lag2,
+    data = Weekly, family=binomial, subset=train
+)
+week.pred <- predict(week.fit, Weekly.test)
+names(week.pred)
+week.class <- week.pred$class
+table(week.class, Direction.test)
+```
+
+(g)
+```{r}
+library(class)
+train.X <- cbind(Lag2)[train]
+test.X <- cbind(Lag2)[!train]
+
+train.Direction <- Direction[train]
+
+set.seed(1)
+knn.pred <- knn(train.X, test.X, train.Direction, k=1)
+table(knn.pred, Direction.test)
+mean(knn.pred == Direction.2005)
+```
+
+(h)
+```{r}
+library(e1071)
+nb.fit <- naiveBayes(Direction ~ Lag2, data = Weekly, subset = train)
+nb.fit
+
+mean(Lag1[train][Direction[train] == "Down"])
+sd(Lag1[train][Direction[train] == "Down"])
+
+nb.class <- predict(nb.fit, Weekly[!train,])
+table(nb.class, Direction.test)
+mean(nb.class == Direction.test)
+
+```
+14.
+(a, b)
+```{r}
+attach(Auto)
+mpg01 <- rep(1, nrow(Auto))
+mpg01[mpg < median(Auto$mpg)] = 0
+Autompg <- data.frame(Auto)
+Autompg["mpg01"] = mpg01
+head(Autompg)
+pairs(Autompg[, cbind(1,2,3,4,5,6,7,8,10)])
+```
+
+(c)
+```{r}
+split1 <- sample(c(rep(0, 0.7 * nrow(Autompg)), rep(1, 0.3 * nrow(Autompg))))
+train = Autompg[split1 == 0, ]
+test = Autompg[split1 != 0,]
+```
+
+(d)
+```{r}
+library(MASS)
+auto.lda = lda(
+    mpg01 ~ cylinders + displacement + horsepower + weight + year,
+    data=train,
+)
+summary(auto.lda)
+
+auto.lda.pred <- predict(auto.lda, test)
+table(auto.lda.pred$class, test$mpg01)
+
+57 3
+6 51
+```
+
+(e)
+```{r}
+auto.qda = qda(
+    mpg01 ~ cylinders + displacement + horsepower + weight + year,
+    data=train,
+)
+summary(auto.qda)
+
+auto.qda.pred <- predict(auto.qda, test)
+table(auto.qda.pred$class, test$mpg01)
+```
+
+(f)
+```{r}
+auto.glm = glm(
+    mpg01 ~ cylinders + displacement + horsepower + weight + year,
+    data=train,
+)
+summary(auto.glm)
+
+auto.glm.probs <- predict(auto.glm, test, type="response")
+auto.glm.pred <- rep(1, nrow(test))
+auto.glm.pred[auto.glm.probs < 0.5] = 0
+table(auto.glm.pred, test$mpg01)
+```
+
+(g)
+```{r}
+library(e1071)
+auto.nb = naiveBayes(
+    mpg01 ~ cylinders + displacement + horsepower + weight + year,
+    data=train,
+)
+
+
+auto.nb.class <- predict(auto.nb, test)
+table(auto.nb.class, test$mpg01)
+```
+
+15
+(a)
+```{r}
+Power <- function() {
+    print(2^3)
+}
+Power()
+
+```
+(b)
+```{r}
+Power2 <- function(x, a) {
+    print(x^a)
+}
+Power2(3, 8)
+```
+(c)
+```{r}
+Power2(10,3)
+Power2(8,17)
+Power2(131, 3)
+```
+(d)
+```{r}
+Power3 = function(x, a){
+    return(x^a)
+}
+```
+(e)
+```{r}
+x = 1:10
+y = Power3(x, 2)
+plot(x, y, log="y")
+```
+
+(f)
+```{r}
+PlotPower <- function(x, a) {
+    y = Power3(x, a)
+    plot(x, y, log="y")
+}
+PlotPower(1:10, 3)
+```

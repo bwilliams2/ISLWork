@@ -174,3 +174,5 @@ mod.pois <- glm(
     data = Bikeshare, family = poisson
 )
 summary(mod.pois)
+
+``
