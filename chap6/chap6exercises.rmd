@@ -1,0 +1,156 @@
+1. 
+a)iii
+b) iii
+c) ii
+
+2.
+a) iv
+b) ii
+c) iii
+d) iv
+e) v
+
+4.
+a. iii
+b. ii
+c. iv
+d. iii
+e. v
+
+5. Revisit
+
+6. 
+```{r}
+p <- 1
+y1 <- 2
+lambda <- 0.2
+b1 <- 1:50 / 10
+ridge <- (y1 - b1)^2 + lambda * b1^2
+plot(b1, ridge)
+```
+
+7. Revisit
+
+8.
+a. 
+```{r}
+library(leaps)
+X <- rnorm(100)
+e <- rnorm(100, sd=0.5)
+```
+
+b.
+```{r}
+
+b0 <- 5
+b1 <- 1
+b2 <- 4
+b3 <- 10
+
+Y = b0 + b1*X + b2*X^2 + b3*X^3 + e
+
+```
+c.
+```{r]
+data = data.frame(Y, X)
+regfit.best <- regsubsets(Y ~ poly(X, 10, raw=TRUE), data=data)
+bestsumm <- summary(regfit.best)
+bestsumm$rsq
+```
+d.
+```{r}
+regfit.fwd <- regsubsets(Y ~ poly(X, 10, raw=TRUE), data=data, method="forward")
+fwdsumm <- summary(regfit.fwd)
+fwdsumm$rsq
+
+regfit.back <- regsubsets(Y ~ poly(X, 10, raw=TRUE), data=data, method="backward")
+backsumm <- summary(regfit.back)
+backsumm$rsq
+```
+
+e.
+```{r}
+library(glmnet)
+train <- sample(1:nrow(data), nrow(data)/2)
+test <- (-train)
+data$X0 = 1
+data$X2 = data$X^2
+data$X3 = data$X^3
+data$X4 = data$X^4
+data$X5 = data$X^5
+data$X6 = data$X^6
+data$X7 = data$X^7
+data$X8 = data$X^8
+data$X9 = data$X^9
+data$X10 = data$X^10
+lasso.mod <- glmnet(data[train,seq(2,10)], data$Y[train], alpha=1, lambda=grid)
+
+x <- model.matrix(~.-Y,data=data)
+y <- data$Y
+cv.out <- cv.glmnet(x, y, alpha=1)
+plot(cv.out)
+lasso.pred <- predict(lasso.mod, s=bestlam, newx=x[test,])
+mean((lasso.pred - y.test)^2)
+```
+
+9.
+a.
+```{r}
+train <- sample(1:nrow(College), nrow(College)/2)
+test <- (-train)
+fits.glm <- glm(Grad.Rate ~ ., data=College[train,])
+summary(fits.glm)
+y_pred <- predict(fits.glm, data=College[test,])
+mean((College[test,]$Grad.Rate - y_pred)^2)
+```
+
+
+b.
+```{r}
+x <- model.matrix(~.-Grad.Rate, data=College)
+y <- College$Grad.Rate
+ridge.cv <- cv.glmnet(x[train,], y[train], alpha=0)
+bestlam <- ridge.cv$lambda.min
+summary(fits.glm)
+fits.ridge <- glmnet(x[train,], y[train], alpha=0, lambda=bestlam)
+y_pred <- predict(fits.ridge, newx=x[test,])
+mean((College[test,]$Grad.Rate - y_pred)^2)
+```
+
+c.
+```{r}
+lasso.cv <- cv.glmnet(x[train,], y[train], alpha=1)
+bestlam <- lasso.cv$lambda.min
+summary(fits.glm)
+fits.lasso <- glmnet(x[train,], y[train], alpha=1, lambda=bestlam)
+y_pred <- predict(fits.lasso, newx=x[test,])
+mean((College[test,]$Grad.Rate - y_pred)^2)
+```
+
+d.
+```{r}
+library(pls)
+set.seed(2)
+cv.pcr <- pcr(Grad.Rate ~ ., data=College, scale=TRUE, validation="CV")
+summary(cv.pcr)
+validationplot(cv.pcr, val.type="MSEP")
+
+fits.pcr <- pcr(Grad.Rate ~ ., data=College[train,], scale=TRUE, ncomp=9)
+y_pred <- predict(fits.pcr, data=College[test])
+mean((College[test,]$Grad.Rate - y_pred)^2)
+
+```
+
+f.
+```{r}
+set.seed(1)
+pls.fit <- plsr(Grad.Rate ~ ., data=College, subset=train, scale=TRUE, validation="CV")
+summary(pls.fit)
+validationplot(pls.fit, val.type="MSEP")
+
+pls.pred <- predict(pls.fit, data=College[test,], ncomp=3)
+mean((pls.pred - College[test,]$Grad.Rate)^2)
+
+pls.fit <- plsr(Salary ~ ., data=Hitters, scale=TRUE, ncomp=1)
+summary(pls.fit)
+```
